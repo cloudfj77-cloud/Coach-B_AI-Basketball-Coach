@@ -42,6 +42,12 @@ struct HomeView: View {
                     if journal.usesMac {
                         Label("Mac 免费模式 · 电脑需开机，设备需在同一网络", systemImage: "desktopcomputer")
                             .font(.caption).foregroundStyle(.secondary)
+                        HStack {
+                            Text(journal.loading ? "正在连接 Mac…" : journal.connected ? "已连接 Mac" : "尚未连接 Mac")
+                                .font(.caption).foregroundStyle(journal.connected ? .green : .orange)
+                            Spacer()
+                            Button("重新连接") { Task { await journal.fetch() } }.font(.caption).disabled(journal.loading)
+                        }
                     }
                     if !journal.configured {
                         VStack(alignment: .leading, spacing: 10) {

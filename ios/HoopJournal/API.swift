@@ -35,6 +35,7 @@ enum APIError: LocalizedError {
     @Published var trainings: [Training] = []
     @Published var error: String?
     @Published var loading = false
+    @Published var connected = false
     @Published var server = UserDefaults.standard.string(forKey: "server") ?? ""
     var token = Secrets.read()
     private let encoder = JSONEncoder()
@@ -107,10 +108,25 @@ enum APIError: LocalizedError {
         loading = true
         defer { loading = false }
         do {
-            let (data, response) = try await session.data(for: request("/api/sessions"))
+            var req = try request("/api/sessions")
+            req.timeoutInterval = 15
+            #if DEBUG
+            NSLog("Coach B: fetching training records")
+            #endif
+            let (data, response) = try await session.data(for: req)
             try check(data, response)
             trainings = try decoder.decode([Training].self, from: data)
-        } catch { self.error = error.localizedDescription }
+            connected = true
+            #if DEBUG
+            NSLog("Coach B: fetched %d training records", trainings.count)
+            #endif
+        } catch {
+            connected = false
+            self.error = usesMac ? "无法连接 Mac。请确认电脑服务已启动、手机和电脑在同一网络，并允许本地网络访问。\n\(error.localizedDescription)" : error.localizedDescription
+            #if DEBUG
+            NSLog("Coach B: fetch failed (%ld): %@", (error as NSError).code, error.localizedDescription)
+            #endif
+        }
     }
 
     func upload(file: URL, title: String, date: Date) async throws -> Training {
@@ -160,5 +176,6 @@ enum APIError: LocalizedError {
         token = key.trimmingCharacters(in: .whitespacesAndNewlines)
         UserDefaults.standard.set(server, forKey: "server")
         trainings = []
+        connected = false
     }
 }
