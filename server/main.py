@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import secrets
 import sqlite3
+import ssl
 import threading
 import uuid
 from urllib.parse import urlparse, parse_qs
@@ -129,6 +130,9 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def respond(self,value,status=200):
+        if os.environ.get('LOCAL_ACCESS_LOG')=='1':
+            # Only connection diagnostics: no URLs, video titles, tokens or bodies.
+            print(f'API {self.command} {status} client={self.client_address[0]}',flush=True)
         payload=json.dumps(value,ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header('Content-Type','application/json; charset=utf-8')
@@ -291,5 +295,18 @@ if __name__=='__main__':
     if host!='127.0.0.1' and len(os.environ.get('APP_TOKEN',''))<32:
         raise SystemExit('Public bind requires APP_TOKEN with at least 32 characters and HTTPS at the proxy.')
     server=ThreadingHTTPServer((host,int(os.environ.get('PORT','8765'))),Handler)
+    cert,key=os.environ.get('TLS_CERT'),os.environ.get('TLS_KEY')
+    if bool(cert)!=bool(key):
+        raise SystemExit('Set both TLS_CERT and TLS_KEY for local HTTPS.')
+    if cert:
+        context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.minimum_version=ssl.TLSVersion.TLSv1_2
+        context.load_cert_chain(cert,key)
+        server.socket=context.wrap_socket(server.socket,server_side=True)
     print(f'Hoop Journal API ready on {host}:{server.server_port}',flush=True)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print('\nCoach B service stopped; training records are preserved.',flush=True)
+    finally:
+        server.server_close()
