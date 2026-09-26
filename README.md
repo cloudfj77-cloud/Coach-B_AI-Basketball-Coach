@@ -53,6 +53,8 @@ python3 scripts/create_xcode_project.py
 
 [部署与安装](docs/deployment.md) · [产品目标](docs/mobile-mvp.md) · [开发路线](ROADMAP.md) · [开发约定](CONTRIBUTING.md)
 
+普通 Apple ID 与无服务器情况下的[低成本方案评估](docs/cost-options.md)。
+
 ## 技术参考
 
 - [Apple PhotosPicker](https://developer.apple.com/documentation/photosui/photospicker)：选取特定相册视频。
