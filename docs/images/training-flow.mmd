@@ -1,0 +1,14 @@
+flowchart TD
+    A[从 iPhone 相册选择训练视频] --> B[上传并准备可播放视频]
+    B --> C{如何记录出手?}
+    C -->|手动标记| D[回看片段并核对逐球结果]
+    C -->|可选 AI 辅助| E[生成待核对的候选出手]
+    E --> D
+    D --> F[统计已确认出手与命中率]
+    F --> G[生成进球集锦并分享]
+    F --> H[查看复盘与下次练习计划]
+    H --> I[开始下一次训练]
+    I -.留下新的训练记录.-> A
+    style A fill:#fff1e6,stroke:#f28c28,color:#24292f
+    style F fill:#fff1e6,stroke:#f28c28,color:#24292f
+    style I fill:#fff1e6,stroke:#f28c28,color:#24292f

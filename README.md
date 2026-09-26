@@ -37,22 +37,7 @@ AI 可以协助寻找候选投篮；手动补记、回看和修改始终可用�
 
 ## 使用流程
 
-```mermaid
-flowchart TD
-    A[从 iPhone 相册选择训练视频] --> B[上传并准备可播放视频]
-    B --> C{如何记录出手?}
-    C -->|手动标记| D[回看片段并核对逐球结果]
-    C -->|可选 AI 辅助| E[生成待核对的候选出手]
-    E --> D
-    D --> F[统计已确认出手与命中率]
-    F --> G[生成进球集锦并分享]
-    F --> H[查看复盘与下次练习计划]
-    H --> I[开始下一次训练]
-    I -.留下新的训练记录.-> A
-    style A fill:#fff1e6,stroke:#f28c28,color:#24292f
-    style F fill:#fff1e6,stroke:#f28c28,color:#24292f
-    style I fill:#fff1e6,stroke:#f28c28,color:#24292f
-```
+![从手机上传到逐球核对、确认统计、集锦分享和下次训练的流程](docs/images/training-flow.svg)
 
 **命中率 = 已核对命中数 ÷ 已核对且结果明确的出手数。** 没有确认记录时显示“暂无数据”，统计仅代表当前录像中已确认的投篮。
 
@@ -84,15 +69,7 @@ flowchart TD
 
 ## 项目如何协作
 
-```mermaid
-flowchart LR
-    Phone[iPhone App] <-->|视频与训练记录| API[个人训练服务]
-    API <-->|持久保存| Store[(训练数据与媒体)]
-    API --> FFmpeg[视频处理与集锦生成]
-    FFmpeg --> Store
-    API -.用户确认后发送抽取画面.-> AI[可选视觉 AI 服务]
-    AI -.返回待核对候选.-> API
-```
+![iPhone、个人训练服务、视频处理、可选视觉 AI 与持久存储之间的协作](docs/images/project-architecture.svg)
 
 - **手机端**：SwiftUI、系统相册选择、视频回看、核对与分享。
 - **服务端**：Python、SQLite、FFmpeg；个人令牌鉴权，数据与媒体持久保存。

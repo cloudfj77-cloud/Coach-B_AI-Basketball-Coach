@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+<title id="title">手机负责记录，服务负责处理</title><desc id="desc">iPhone 连接个人训练服务，服务使用 FFmpeg 处理视频，选择性调用视觉 AI，并持久保存训练数据和媒体。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9" fill="none" stroke="#8794a8" stroke-width="1.5"/></marker></defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif} .label{font-size:19px;font-weight:650;fill:#172b44} .detail{font-size:14px;fill:#52657c} .line{fill:none;stroke:#8794a8;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="960" height="420" rx="20" fill="#f5f7fa"/>
+<text x="32" y="42" font-size="21" font-weight="700" fill="#172b44">手机负责记录，服务负责处理</text>
+<path d="M220 226 H318" class="line"/>
+<path d="M540 226 H592 V111 H660" class="line"/>
+<path d="M592 226 H660" class="line"/>
+<path d="M592 226 V341 H660" class="line"/>
+<rect x="32" y="184" width="188" height="84" rx="14" fill="#fff1e5" stroke="#f6a457"/>
+<text x="126.0" y="217" text-anchor="middle" class="label">iPhone App</text>
+<text x="126.0" y="242" text-anchor="middle" class="detail">相册 · 回看 · 核对</text>
+<rect x="322" y="184" width="218" height="84" rx="14" fill="#fff1e5" stroke="#f6a457"/>
+<text x="431.0" y="217" text-anchor="middle" class="label">个人训练服务</text>
+<text x="431.0" y="242" text-anchor="middle" class="detail">接收视频 · 组织任务</text>
+<rect x="664" y="69" width="264" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="796.0" y="102" text-anchor="middle" class="label">FFmpeg 视频处理</text>
+<text x="796.0" y="127" text-anchor="middle" class="detail">方向调整 · 转码 · 剪辑</text>
+<rect x="664" y="184" width="264" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="796.0" y="217" text-anchor="middle" class="label">可选视觉 AI</text>
+<text x="796.0" y="242" text-anchor="middle" class="detail">确认发送画面后生成候选</text>
+<rect x="664" y="299" width="264" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="796.0" y="332" text-anchor="middle" class="label">持久保存</text>
+<text x="796.0" y="357" text-anchor="middle" class="detail">SQLite 记录 + 视频文件</text>
+<text x="32" y="396" class="detail">云端部署完成后，上传后的任务不依赖 Mac 开机。</text>
+</svg>

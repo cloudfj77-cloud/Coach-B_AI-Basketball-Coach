@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="380" viewBox="0 0 960 380" role="img" aria-labelledby="title desc">
+<title id="title">从一段视频，到下一次训练</title><desc id="desc">手机上传视频，准备预览，手动或 AI 辅助记录出手，经人工核对后生成统计、集锦与训练计划。</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 1 L8 5 L0 9" fill="none" stroke="#8794a8" stroke-width="1.5"/></marker></defs>
+<style>text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif} .label{font-size:19px;font-weight:650;fill:#172b44} .detail{font-size:14px;fill:#52657c} .line{fill:none;stroke:#8794a8;stroke-width:2;marker-end:url(#arrow)}</style>
+<rect width="960" height="380" rx="20" fill="#f5f7fa"/>
+<text x="32" y="42" font-size="21" font-weight="700" fill="#172b44">从一段视频，到下一次训练</text>
+<path d="M192 136 H210" class="line"/>
+<path d="M376 136 H394" class="line"/>
+<path d="M560 136 H578" class="line"/>
+<path d="M744 136 H762" class="line"/>
+<rect x="28" y="94" width="164" height="84" rx="14" fill="#fff1e5" stroke="#f6a457"/>
+<text x="110.0" y="127" text-anchor="middle" class="label">手机上传</text>
+<text x="110.0" y="152" text-anchor="middle" class="detail">选取相册视频</text>
+<rect x="212" y="94" width="164" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="294.0" y="127" text-anchor="middle" class="label">视频准备</text>
+<text x="294.0" y="152" text-anchor="middle" class="detail">方向与格式处理</text>
+<rect x="396" y="94" width="164" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="478.0" y="127" text-anchor="middle" class="label">记录出手</text>
+<text x="478.0" y="152" text-anchor="middle" class="detail">手动 / 可选 AI</text>
+<rect x="580" y="94" width="164" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="662.0" y="127" text-anchor="middle" class="label">逐球核对</text>
+<text x="662.0" y="152" text-anchor="middle" class="detail">命中或未命中</text>
+<rect x="764" y="94" width="164" height="84" rx="14" fill="#fff1e5" stroke="#f6a457"/>
+<text x="846.0" y="127" text-anchor="middle" class="label">确认统计</text>
+<text x="846.0" y="152" text-anchor="middle" class="detail">明确结果才计入</text>
+<path d="M846 178 V220 H316 V248" class="line"/>
+<path d="M846 220 H664 V248" class="line"/>
+<rect x="188" y="252" width="256" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="316.0" y="285" text-anchor="middle" class="label">复盘与下次计划</text>
+<text x="316.0" y="310" text-anchor="middle" class="detail">带着练习重点开始下一次训练</text>
+<rect x="536" y="252" width="256" height="84" rx="14" fill="white" stroke="#d8e0eb"/>
+<text x="664.0" y="285" text-anchor="middle" class="label">进球集锦与分享</text>
+<text x="664.0" y="310" text-anchor="middle" class="detail">正常速度 · 慢动作 · 复盘尾卡</text>
+<text x="32" y="362" class="detail">AI 候选先核对；未知结果不算未命中；重播不增加出手数。</text>
+</svg>

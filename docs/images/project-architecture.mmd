@@ -1,0 +1,7 @@
+flowchart LR
+    Phone[iPhone App] <-->|视频与训练记录| API[个人训练服务]
+    API <-->|持久保存| Store[(训练数据与媒体)]
+    API --> FFmpeg[视频处理与集锦生成]
+    FFmpeg --> Store
+    API -.用户确认后发送抽取画面.-> AI[可选视觉 AI 服务]
+    AI -.返回待核对候选.-> API
