@@ -15,6 +15,7 @@ struct PickedMovie: Transferable {
 
 struct HomeView: View {
     @EnvironmentObject var journal: Journal
+    @Environment(\.scenePhase) private var scenePhase
     @State private var settings = false
     @State private var upload = false
     private var attempts: Int { journal.trainings.reduce(0) { $0 + $1.stats.attempts } }
@@ -77,7 +78,18 @@ struct HomeView: View {
                 .navigationTitle("Coach B")
                 .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") } }
                 .refreshable { await journal.fetch() }
-                .task { await journal.fetch() }
+                .task {
+                    await journal.fetch()
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for: .seconds(4)) } catch { break }
+                        if scenePhase == .active && journal.trainings.contains(where: { $0.busy }) {
+                            await journal.fetch()
+                        }
+                    }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await journal.fetch() } }
+                }
                 .sheet(isPresented: $settings) { SettingsView() }
                 .sheet(isPresented: $upload) { UploadView() }
                 .alert("暂时无法完成", isPresented: Binding(get: { journal.error != nil }, set: { if !$0 { journal.error = nil } })) { Button("知道了") { journal.error = nil } } message: { Text(journal.error ?? "") }
