@@ -102,7 +102,7 @@ def highlight(source, target, shots, stats, progress):
             progress(f'正在剪辑 {i+1} / {len(segments)}')
             path=Path(temp)/f'{i:04}.mp4'
             # Silent slow-motion avoids stretched speech; original video is preserved.
-            run(['-ss',shot['start'],'-i',source,'-t',shot['end']-shot['start'],
+            run(['-ss',shot['start'],'-t',shot['end']-shot['start'],'-i',source,
                  '-vf',f'setpts={slow}*(PTS-STARTPTS),fps=30,format=yuv420p', '-an',
                  '-c:v','libx264','-preset','veryfast','-crf','22',path])
             clips.append(path)

@@ -75,6 +75,9 @@ class APILifecycle(unittest.TestCase):
         self.assertTrue(item['highlightReady']); self.assertFalse(item['highlightStale'])
         export=self.root/'result.mp4'; export.write_bytes(self.call(base+'/highlight'))
         subprocess.run([os.environ.get('FFMPEG_PATH','ffmpeg'),'-v','error','-i',str(export),'-f','null','-'],check=True,timeout=30)
+        from server.media import probe
+        # Full normal clip + the same clip at half speed + a five-second recap.
+        self.assertAlmostEqual(probe(export),1.7+3.4+5,delta=.2)
         self.process.terminate(); self.process.communicate(timeout=10); self.start_server()
         item=self.call(base)
         self.assertEqual(item['stats']['attempts'],2)
