@@ -1,6 +1,6 @@
 # 开发约定
 
-- 项目归属 `cloudfj77-cloud/basketball-journal`，私人媒体、训练数据和密钥不进 Git。
+- 项目归属 `cloudfj77-cloud/Coach-B_AI-Basketball-Coach`，私人媒体、训练数据和密钥不进 Git。
 - 一个问题对应一个分支与可检查的改动；PR 描述问题、行为变化及验证结果。
 - 修改统计或媒体流程时运行 `python -m unittest discover -s tests -v`。
 - 修改界面时构建模拟器版本并检查页面；相册权限与后台行为必须实机验证。

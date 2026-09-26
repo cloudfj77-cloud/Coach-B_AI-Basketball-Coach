@@ -1,61 +1,101 @@
-# 2 号训练日志 · iPhone
+<div align="center">
 
-付杰的个人篮球训练 App。直接选择手机相册视频，建立记录、逐球核对、生成进球集锦，查看复盘和下次计划。手机端采用 SwiftUI，视频服务可独立部署到云端。
+# Coach B — AI Basketball Coach
 
-**0.1 开发版：尚未部署公网服务或安装到真实 iPhone。** 模拟器版本已编译并启动；后端上传、转码、核对、集锦导出和重启持久化流程通过测试。目前模拟器连接本机开发服务，不是最终云端部署。
+**记录每一次出手，让下一次训练更有方向。**
 
-GitHub：[cloudfj77-cloud/basketball-journal](https://github.com/cloudfj77-cloud/basketball-journal)（私有）。
+从手机相册里的训练视频出发，把逐球记录、命中率、进球集锦和训练复盘放在一起。Coach B 是你的个人篮球训练助手：回看表现、分享高光，再带着明确的练习重点走进下一次训练。
 
-## 已实现
+**iPhone · 训练记录 · 视频集锦 · AI 辅助核对**
 
-- 系统相册选取 MOV / MP4，上传到个人服务；上传完成后由服务器继续处理。
-- 持久训练日志，视频回看，逐球增加、确认、编辑和删除。
-- 命中率仅计算已核对且结果明确的出手，未知结果不算未命中。
-- 90° 方向调整，HDR 到 SDR 预览转换。
-- 正常速度进球、前三个进球的慢动作和复盘尾卡，输出 MP4；系统分享与相册保存入口。
-- 基于确认记录的复盘与通用 60 分钟计划，不虚构动作诊断。
-- 可选 OpenAI 画面识别接口，明确提示画面传输后才调用；结果先待核对。真实 API 识别质量尚未验证。
-- 首次人工复盘导入脚本：19 次出手、6 次命中。个人视频和记录仅保存在忽略目录，未提交 GitHub。
+[体验与安装](#体验与安装) · [使用流程](#使用流程) · [开发路线](ROADMAP.md) · [参与开发](CONTRIBUTING.md)
 
-## 当前限制
+</div>
 
-- 上传需保持前台；尚无断点续传、后台上传或完成推送。预览先下载再播放。
-- AI 每秒两帧抽样会漏检或误判，不能当作完整自动统计。
-- 当前导出无声集锦；背影开场、人物缩放、自由倾斜校正及配乐待开发。
-- 训练计划为标明来源的规则模板，尚非个性化教练模型；历史趋势图待开发。
-- 单人私人令牌鉴权，没有多用户账号或 TestFlight 配置。
-- 服务重启会将未完成任务标为中断，支持重试，不自动恢复。
-- 真实手机脱离 Mac 使用，还需 HTTPS 云服务、持久磁盘和 Apple 签名。没有购买付费服务。
+> **开发版 v0.1** · 已通过 iPhone 模拟器构建和后端流程测试。当前提供源码，尚未发布 App Store / TestFlight 安装包；AI 识别效果仍需真实视频验证。
 
-## 本地开发
+## 应用截图
 
-需要 Python 3.10+、FFmpeg（libx264 / zscale）、Pillow 和中文字体。
+<p align="center">
+  <img src="docs/images/coach-b-home.png" width="320" alt="Coach B 的 iPhone 训练首页：相册上传入口、累计出手与命中率、按次整理的训练日志" />
+</p>
 
-```sh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r server/requirements.txt
-export FFMPEG_PATH=/absolute/path/to/ffmpeg
-export FONT_PATH='/System/Library/Fonts/Hiragino Sans GB.ttc'
-python -m server.main
+<p align="center"><b>训练首页</b> · 从相册开始，回到数据复盘</p>
+
+截图来自正在运行的 iPhone 模拟器开发版，统计来自人工核对记录，不是 AI 识别准确率演示。
+
+## 用 Coach B 做什么
+
+| 从哪里开始 | 你能得到什么 |
+| --- | --- |
+| **选一段训练视频** | 从 iPhone 相册上传，集中保存训练记录和可回看的片段。 |
+| **核对每一次出手** | 确认命中、未命中与无法判断的球，得到有依据的命中率。 |
+| **分享自己的高光** | 将已确认进球剪成正常速度＋精选慢动作集锦，并加入数据与复盘尾卡。 |
+| **带着重点去训练** | 查看文字复盘和通用练习计划，为下一次训练留下记录。 |
+
+AI 可以协助寻找候选投篮；手动补记、回看和修改始终可用。**看不清的球不会自动算成未命中，慢动作重播也不会重复计数。**
+
+## 使用流程
+
+```mermaid
+flowchart TD
+    A[从 iPhone 相册选择训练视频] --> B[上传并准备可播放视频]
+    B --> C{如何记录出手?}
+    C -->|手动标记| D[回看片段并核对逐球结果]
+    C -->|可选 AI 辅助| E[生成待核对的候选出手]
+    E --> D
+    D --> F[统计已确认出手与命中率]
+    F --> G[生成进球集锦并分享]
+    F --> H[查看复盘与下次练习计划]
+    H --> I[开始下一次训练]
+    I -.留下新的训练记录.-> A
+    style A fill:#fff1e6,stroke:#f28c28,color:#24292f
+    style F fill:#fff1e6,stroke:#f28c28,color:#24292f
+    style I fill:#fff1e6,stroke:#f28c28,color:#24292f
 ```
 
-默认 `http://127.0.0.1:8765`；开发令牌保存在 `data/.token`，不打印或提交。打开 `ios/HoopJournal.xcodeproj`，运行 iPhone 模拟器，在 App 设置填本机地址与私人令牌。正式版本只接受 HTTPS。
+**命中率 = 已核对命中数 ÷ 已核对且结果明确的出手数。** 没有确认记录时显示“暂无数据”，统计仅代表当前录像中已确认的投篮。
 
-```sh
-python -m unittest discover -s tests -v
-xcodebuild -project ios/HoopJournal.xcodeproj -scheme HoopJournal \
-  -sdk iphonesimulator -configuration Debug -derivedDataPath .build \
-  CODE_SIGNING_ALLOWED=NO build
-# 新增 Swift 文件后重建工程文件，无需第三方依赖
-python3 scripts/create_xcode_project.py
+## 体验与安装
+
+目前需要从源码运行开发版。手机端和视频处理服务都在这个仓库里：
+
+1. **运行视频服务**：按[开发指南](docs/development.md)准备后端，或按[部署说明](docs/deployment.md)配置 HTTPS 云端服务。
+2. **运行 iPhone App**：用 Xcode 打开 `ios/HoopJournal.xcodeproj`，选择模拟器；安装到真实 iPhone 需要配置自己的 Apple 签名。
+3. **连接并开始训练**：在 App 设置填写服务地址与私人访问令牌，然后从相册选择视频。
+
+服务部署到云端后，上传完成的分析与剪辑任务可独立处理，不需要 Mac 一直开着。当前模拟器连接本机开发服务，尚未完成公网部署与实机验证。
+
+只有普通 Apple ID、暂时没有云服务器？先看[低成本使用方案](docs/cost-options.md)。
+
+## 当前进度
+
+| 已实现 | 接下来 |
+| --- | --- |
+| 相册入口、训练日志、逐球核对与统计 | 实际 iPhone 安装与云端部署 |
+| 90° 方向调整、HDR 到 SDR 预览 | 后台上传、断点续传与完成通知 |
+| 无声进球集锦、慢动作、复盘尾卡 | 背影开场、人物缩放与配乐 |
+| 文字复盘与通用 60 分钟练习计划 | 分类趋势和更个性化的计划 |
+| 可选 AI 候选识别接口 | 真实视频上的漏检、误判与费用评估 |
+
+当前上传需要保持 App 前台；AI 服务需要单独配置，候选结果仍需人工核对。训练建议目前基于记录和规则模板，不将推测当作动作诊断。
+
+完整迭代清单见 [Roadmap](ROADMAP.md)。
+
+## 项目如何协作
+
+```mermaid
+flowchart LR
+    Phone[iPhone App] <-->|视频与训练记录| API[个人训练服务]
+    API <-->|持久保存| Store[(训练数据与媒体)]
+    API --> FFmpeg[视频处理与集锦生成]
+    FFmpeg --> Store
+    API -.用户确认后发送抽取画面.-> AI[可选视觉 AI 服务]
+    AI -.返回待核对候选.-> API
 ```
 
-[部署与安装](docs/deployment.md) · [产品目标](docs/mobile-mvp.md) · [开发路线](ROADMAP.md) · [开发约定](CONTRIBUTING.md)
+- **手机端**：SwiftUI、系统相册选择、视频回看、核对与分享。
+- **服务端**：Python、SQLite、FFmpeg；个人令牌鉴权，数据与媒体持久保存。
+- **持续开发**：GitHub Actions 检查后端流程和 iPhone 构建；训练视频和密钥不放入代码仓库。
 
-普通 Apple ID 与无服务器情况下的[低成本方案评估](docs/cost-options.md)。
-
-## 技术参考
-
-- [Apple PhotosPicker](https://developer.apple.com/documentation/photosui/photospicker)：选取特定相册视频。
-- [OpenAI 图像输入](https://developers.openai.com/api/docs/guides/images-vision)与[结构化输出](https://developers.openai.com/api/docs/guides/structured-outputs)：候选投篮识别。
+[开发指南](docs/development.md) · [部署说明](docs/deployment.md) · [产品规格](docs/mobile-mvp.md) · [贡献约定](CONTRIBUTING.md)

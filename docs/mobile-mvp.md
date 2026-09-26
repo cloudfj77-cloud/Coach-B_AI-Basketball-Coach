@@ -6,7 +6,7 @@
 - 主要入口：手机相册；不要求先把视频导到电脑。
 - 手机平台：iPhone，原生 SwiftUI，最低 iOS 18。
 - 视频分析和剪辑在云端执行，Mac 无需保持开机。
-- GitHub：`cloudfj77-cloud/basketball-journal` 私有仓库；个人媒体与凭证独立存储。
+- GitHub：`cloudfj77-cloud/Coach-B_AI-Basketball-Coach` 私有仓库；个人媒体与凭证独立存储。
 
 ## 核心页面
 

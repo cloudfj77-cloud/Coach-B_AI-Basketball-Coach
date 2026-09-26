@@ -64,7 +64,7 @@ struct HomeView: View {
                     Text("按已核对出手统计 · 不把看不清的球算作未命中").font(.caption).foregroundStyle(.secondary)
                 }.padding(20)
             }.background(Color(.systemGroupedBackground))
-                .navigationTitle("2 号训练日志")
+                .navigationTitle("Coach B")
                 .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") } }
                 .refreshable { await journal.fetch() }
                 .task { await journal.fetch() }
