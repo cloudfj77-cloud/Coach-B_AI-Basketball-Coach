@@ -29,5 +29,13 @@ class TrainingRules(unittest.TestCase):
         self.assertIn('0.0%',text)
         self.assertIn('120 次',text)
 
+    def test_personal_review_is_invalidated_when_shots_change(self):
+        session=dict(title='训练',date='2026-09-26',shots=[shot()],revision=4,
+                     reviewReport='本次白衣球员的复盘',reviewReportRevision=4)
+        self.assertEqual(report(session),'本次白衣球员的复盘')
+        session['revision']=5
+        self.assertNotEqual(report(session),'本次白衣球员的复盘')
+        self.assertNotIn('2 号球员',report(session))
+
 
 if __name__=='__main__': unittest.main()
