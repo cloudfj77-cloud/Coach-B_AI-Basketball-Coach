@@ -4,12 +4,14 @@ from contextlib import contextmanager
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hmac
+import fcntl
 import json
 import os
 from pathlib import Path
 import re
 import secrets
 import sqlite3
+import ssl
 import threading
 import uuid
 from urllib.parse import urlparse, parse_qs
@@ -45,12 +47,16 @@ def connection():
 
 with connection() as db:
     db.execute('CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, document TEXT NOT NULL)')
+
+
+def recover_interrupted_jobs():
     # Incomplete jobs fail explicitly after a process restart; users can retry safely.
-    for ident, raw in db.execute('SELECT id, document FROM sessions').fetchall():
-        doc=json.loads(raw)
-        if doc['busy']:
-            doc.update(busy=False,status='任务中断，可重新处理',error='服务重启，请重试相应操作')
-            db.execute('UPDATE sessions SET document=? WHERE id=?',(json.dumps(doc),ident))
+    with connection() as db:
+        for ident, raw in db.execute('SELECT id, document FROM sessions').fetchall():
+            doc=json.loads(raw)
+            if doc['busy']:
+                doc.update(busy=False,status='任务中断，可重新处理',error='服务重启，请重试相应操作')
+                db.execute('UPDATE sessions SET document=? WHERE id=?',(json.dumps(doc),ident))
 
 
 def save(doc):
@@ -86,16 +92,19 @@ def job(ident, kind):
         doc=get(ident)
         progress=lambda status:update(ident,status=status)
         if kind=='prepare':
+            progress('正在调整画面并生成预览…' if doc['turns'] else '正在生成视频预览…')
             tmp=folder/'preview.new.mp4'
             media.normalize(folder/'source.mov',tmp,doc['turns'])
             tmp.replace(folder/'preview.mp4')
         elif kind=='analyze':
+            progress('正在识别投篮候选…')
             shots=media.analyze(folder/'preview.mp4',doc['duration'],doc['player'],progress)
             # Do not overwrite reviewed or manually recorded shots on retry.
             existing=doc['shots']
             shots=[s for s in shots if not any(abs(s['release']-e['release'])<1.5 for e in existing)]
             update(ident,shots=validate_shots(existing+shots,doc['duration']),revision=doc['revision']+1)
         elif kind=='render':
+            progress('正在生成进球集锦…')
             tmp=folder/'highlight.new.mp4'
             media.highlight(folder/'preview.mp4',tmp,doc['shots'],statistics(doc['shots']),progress)
             tmp.replace(folder/'highlight.mp4')
@@ -129,6 +138,9 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def respond(self,value,status=200):
+        if os.environ.get('LOCAL_ACCESS_LOG')=='1':
+            # Only connection diagnostics: no URLs, video titles, tokens or bodies.
+            print(f'API {self.command} {status} client={self.client_address[0]}',flush=True)
         payload=json.dumps(value,ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header('Content-Type','application/json; charset=utf-8')
@@ -287,9 +299,29 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__=='__main__':
+    # A second launch must not reset the first server's running task states.
+    instance_lock=open(DATA/'.server.lock','a')
+    try:
+        fcntl.flock(instance_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise SystemExit('Coach B is already running for this data directory.')
     host=os.environ.get('HOST','127.0.0.1')
     if host!='127.0.0.1' and len(os.environ.get('APP_TOKEN',''))<32:
         raise SystemExit('Public bind requires APP_TOKEN with at least 32 characters and HTTPS at the proxy.')
     server=ThreadingHTTPServer((host,int(os.environ.get('PORT','8765'))),Handler)
+    cert,key=os.environ.get('TLS_CERT'),os.environ.get('TLS_KEY')
+    if bool(cert)!=bool(key):
+        raise SystemExit('Set both TLS_CERT and TLS_KEY for local HTTPS.')
+    if cert:
+        context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.minimum_version=ssl.TLSVersion.TLSv1_2
+        context.load_cert_chain(cert,key)
+        server.socket=context.wrap_socket(server.socket,server_side=True)
+    recover_interrupted_jobs()
     print(f'Hoop Journal API ready on {host}:{server.server_port}',flush=True)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print('\nCoach B service stopped; training records are preserved.',flush=True)
+    finally:
+        server.server_close()

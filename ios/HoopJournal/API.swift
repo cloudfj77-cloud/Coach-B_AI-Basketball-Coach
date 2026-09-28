@@ -35,20 +35,46 @@ enum APIError: LocalizedError {
     @Published var trainings: [Training] = []
     @Published var error: String?
     @Published var loading = false
+    @Published var connected = false
     @Published var server = UserDefaults.standard.string(forKey: "server") ?? ""
     var token = Secrets.read()
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
-    private let session: URLSession = {
+    private lazy var session: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 120
         configuration.timeoutIntervalForResource = 3600
+        #if DEBUG
+        if let host = UserDefaults.standard.string(forKey: "localCertificateHost"),
+           let certificate = UserDefaults.standard.data(forKey: "localCertificate") {
+            return URLSession(configuration: configuration,
+                              delegate: LocalServerTrust(host: host, certificate: certificate), delegateQueue: nil)
+        }
+        #endif
         return URLSession(configuration: configuration)
     }()
     var configured: Bool { !server.isEmpty && !token.isEmpty }
+    var usesMac: Bool {
+        guard let host = URL(string: server)?.host else { return false }
+        return host == UserDefaults.standard.string(forKey: "localCertificateHost")
+    }
 
     init() {
         #if DEBUG
+        if let url = ProcessInfo.processInfo.environment["HOOP_LOCAL_SERVER"],
+           let host = URL(string: url)?.host, URL(string: url)?.scheme == "https",
+           let key = ProcessInfo.processInfo.environment["HOOP_LOCAL_TOKEN"],
+           let encoded = ProcessInfo.processInfo.environment["HOOP_LOCAL_CERT"],
+           let certificate = Data(base64Encoded: encoded),
+           SecCertificateCreateWithData(nil, certificate as CFData) != nil {
+            do {
+                try Secrets.save(key)
+                UserDefaults.standard.set(url, forKey: "server")
+                UserDefaults.standard.set(host, forKey: "localCertificateHost")
+                UserDefaults.standard.set(certificate, forKey: "localCertificate")
+                server = url; token = key
+            } catch { self.error = error.localizedDescription }
+        }
         if let url = ProcessInfo.processInfo.environment["HOOP_TEST_SERVER"],
            let key = ProcessInfo.processInfo.environment["HOOP_TEST_TOKEN"] {
             server = url; token = key
@@ -57,7 +83,7 @@ enum APIError: LocalizedError {
     }
 
     func request(_ path: String, method: String = "GET") throws -> URLRequest {
-        guard let base = URL(string: server), base.host != nil else { throw APIError.message("请先在设置中填写云端服务地址") }
+        guard let base = URL(string: server), base.host != nil else { throw APIError.message("请先在设置中填写训练服务地址") }
         var allowed = base.scheme == "https"
         #if DEBUG
         allowed = allowed || (base.scheme == "http" && ["127.0.0.1", "localhost"].contains(base.host!))
@@ -82,10 +108,25 @@ enum APIError: LocalizedError {
         loading = true
         defer { loading = false }
         do {
-            let (data, response) = try await session.data(for: request("/api/sessions"))
+            var req = try request("/api/sessions")
+            req.timeoutInterval = 15
+            #if DEBUG
+            NSLog("Coach B: fetching training records")
+            #endif
+            let (data, response) = try await session.data(for: req)
             try check(data, response)
             trainings = try decoder.decode([Training].self, from: data)
-        } catch { self.error = error.localizedDescription }
+            connected = true
+            #if DEBUG
+            NSLog("Coach B: fetched %d training records", trainings.count)
+            #endif
+        } catch {
+            connected = false
+            self.error = usesMac ? "无法连接 Mac。请确认电脑服务已启动、手机和电脑在同一网络，并允许本地网络访问。\n\(error.localizedDescription)" : error.localizedDescription
+            #if DEBUG
+            NSLog("Coach B: fetch failed (%ld): %@", (error as NSError).code, error.localizedDescription)
+            #endif
+        }
     }
 
     func upload(file: URL, title: String, date: Date) async throws -> Training {
@@ -135,5 +176,6 @@ enum APIError: LocalizedError {
         token = key.trimmingCharacters(in: .whitespacesAndNewlines)
         UserDefaults.standard.set(server, forKey: "server")
         trainings = []
+        connected = false
     }
 }

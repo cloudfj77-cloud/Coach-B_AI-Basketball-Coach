@@ -35,10 +35,12 @@ def statistics(shots):
 
 
 def report(session):
+    if session.get('reviewReport') and session.get('reviewReportRevision') == session.get('revision'):
+        return session['reviewReport']
     stats = statistics(session['shots'])
     percentage = f"{stats['percentage']:.1f}%" if stats['percentage'] is not None else '暂无数据'
     observed = [s.get('note', '').strip() for s in session['shots'] if s['reviewed'] and s.get('note', '').strip()]
-    text = f"2 号球员训练记录与复盘\n{session['title']} · {session['date']}\n\n已核对出手 {stats['attempts']} 次，命中 {stats['made']} 次，命中率 {percentage}。待核对 {stats['pending']} 次。\n统计仅代表这段录像中已确认的出手，不代表整场训练。"
+    text = f"球员训练记录与复盘\n{session['title']} · {session['date']}\n\n已核对出手 {stats['attempts']} 次，命中 {stats['made']} 次，命中率 {percentage}。结果待定 {stats['pending']} 次。\n统计仅代表这段录像中已确认结果的出手，不代表整场训练。"
     text += '\n\n复盘\n'
     if observed:
         text += '\n'.join('• '+n for n in list(dict.fromkeys(observed))[:6])

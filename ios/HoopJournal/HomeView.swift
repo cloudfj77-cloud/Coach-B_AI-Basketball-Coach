@@ -15,6 +15,7 @@ struct PickedMovie: Transferable {
 
 struct HomeView: View {
     @EnvironmentObject var journal: Journal
+    @Environment(\.scenePhase) private var scenePhase
     @State private var settings = false
     @State private var upload = false
     private var attempts: Int { journal.trainings.reduce(0) { $0 + $1.stats.attempts } }
@@ -39,10 +40,20 @@ struct HomeView: View {
                     Button { upload = true } label: {
                         Label("从相册开始新训练", systemImage: "plus.circle.fill").font(.headline).frame(maxWidth: .infinity).padding(.vertical, 10)
                     }.buttonStyle(.borderedProminent).disabled(!journal.configured)
+                    if journal.usesMac {
+                        Label("Mac 免费模式 · 电脑需开机，设备需在同一网络", systemImage: "desktopcomputer")
+                            .font(.caption).foregroundStyle(.secondary)
+                        HStack {
+                            Text(journal.loading ? "正在连接 Mac…" : journal.connected ? "已连接 Mac" : "尚未连接 Mac")
+                                .font(.caption).foregroundStyle(journal.connected ? .green : .orange)
+                            Spacer()
+                            Button("重新连接") { Task { await journal.fetch() } }.font(.caption).disabled(journal.loading)
+                        }
+                    }
                     if !journal.configured {
                         VStack(alignment: .leading, spacing: 10) {
                             Label("连接你的训练空间", systemImage: "cloud").font(.headline)
-                            Text("首次使用需要连接云端服务。连接后直接选取手机视频，上传完成后的处理不需要 Mac 开机。").font(.subheadline).foregroundStyle(.secondary)
+                            Text("连接自己的 Mac 或云端服务后，直接选取手机视频。使用 Mac 时，电脑需要保持开机并与手机联网。").font(.subheadline).foregroundStyle(.secondary)
                             Button("配置服务") { settings = true }
                         }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 18))
                     }
@@ -67,7 +78,18 @@ struct HomeView: View {
                 .navigationTitle("Coach B")
                 .toolbar { Button { settings = true } label: { Image(systemName: "gearshape") } }
                 .refreshable { await journal.fetch() }
-                .task { await journal.fetch() }
+                .task {
+                    await journal.fetch()
+                    while !Task.isCancelled {
+                        do { try await Task.sleep(for: .seconds(4)) } catch { break }
+                        if scenePhase == .active && journal.trainings.contains(where: { $0.busy }) {
+                            await journal.fetch()
+                        }
+                    }
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await journal.fetch() } }
+                }
                 .sheet(isPresented: $settings) { SettingsView() }
                 .sheet(isPresented: $upload) { UploadView() }
                 .alert("暂时无法完成", isPresented: Binding(get: { journal.error != nil }, set: { if !$0 { journal.error = nil } })) { Button("知道了") { journal.error = nil } } message: { Text(journal.error ?? "") }
@@ -93,13 +115,13 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("个人云端服务") {
+                Section("个人训练服务") {
                     TextField("https://你的服务地址", text: $url).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     SecureField("访问令牌", text: $token).textInputAutocapitalization(.never).autocorrectionDisabled()
                     Text("访问令牌保存在 iPhone 钥匙串。AI 密钥只配置在服务器，不需要填到这里。").font(.caption)
                 }
                 Section("第一版说明") {
-                    Text("视频通过 HTTPS 上传至你的服务。AI 分析需要服务器配置 OpenAI，识别前会再次提示；有疑问的出手需要人工核对。")
+                    Text(journal.usesMac ? "视频加密传给你的 Mac。电脑需要开机、不休眠，手机与电脑需在同一网络。免费模式先手动核对投篮，再统计命中率、生成集锦和基础建议。" : "视频通过 HTTPS 上传至你的服务。AI 分析需要服务器配置 OpenAI，识别前会再次提示；有疑问的出手需要人工核对。")
                     Text("当前版本上传期间需要保持 App 在前台；上传完成后可以离开，服务器继续处理。")
                 }
                 if let error { Text(error).foregroundStyle(.red) }
@@ -137,7 +159,7 @@ struct UploadView: View {
                     PhotosPicker(selection: $selection, matching: .videos) { Label(movie == nil ? "从相册选择视频" : "已选视频，点此更换", systemImage: "photo.on.rectangle") }.disabled(busy)
                     Text("支持 2 GB 以内、最长两小时的视频。只读取你选中的视频。").font(.caption)
                 }
-                if busy { HStack { ProgressView(); Text(status) }; Text("上传完成前请保持 App 在前台。完成后可以离开，云端会继续处理。").font(.caption) }
+                if busy { HStack { ProgressView(); Text(status) }; Text(journal.usesMac ? "上传完成前请保持 App 在前台。完成后 Mac 会继续处理，请保持电脑开机。" : "上传完成前请保持 App 在前台。完成后可以离开，服务会继续处理。").font(.caption) }
                 if let error { Text(error).foregroundStyle(.red) }
                 Button("上传并建立训练记录") {
                     guard let movie else { return }
